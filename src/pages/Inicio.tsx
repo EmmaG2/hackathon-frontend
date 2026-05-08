@@ -37,7 +37,7 @@ function CabeceraDesktop() {
         </div>
       </div>
       <nav className="flex items-center gap-6 ml-auto">
-        <Link to="/" className="font-body font-medium text-[13px] text-cafe">Explorar</Link>
+        <Link to="/explorar" className="font-body font-medium text-[13px] text-cafe">Explorar</Link>
         <Link to="/mis-reservas" className="font-body text-[13px] text-cafe-atenuado">Mis reservas</Link>
       </nav>
     </header>
