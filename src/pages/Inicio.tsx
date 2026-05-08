@@ -127,15 +127,6 @@ export function Inicio() {
           <h1 className="font-display text-[30px] md:text-[40px] text-cafe">Hola, {nombreUsuario}</h1>
           <p className="font-body text-[14px] text-cafe-atenuado">¿Dónde cenamos esta noche?</p>
         </div>
-          <h1 className="font-display text-[30px] md:text-[40px] text-cafe">
-            Hola, {nombreUsuario}
-          </h1>
-
-          <p className="font-body text-[14px] text-cafe-atenuado">
-            ¿Dónde cenamos esta noche?
-          </p>
-
-        </div>
         <div className="mb-3 md:hidden">
           <div className="flex items-center gap-2.5 bg-white border border-cafe/12 rounded-full px-3.5 h-12">
             <span className="text-[16px]">🔍</span>
