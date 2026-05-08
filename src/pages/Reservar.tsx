@@ -125,7 +125,7 @@ export function Reservar() {
   const [mesaSeleccionada, setMesaSeleccionada] =
     useState<number | null>(null)
 
-  const [orden, setOrden] = useState<
+  const [orden] = useState<
     { item: ItemMenu; cantidad: number }[]
   >([])
   const [paso, setPaso] = useState<
