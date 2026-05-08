@@ -39,3 +39,4 @@ Project is early-stage. As features are added, follow:
 - Debes escribir componentes Pages limpios, estos componentes no deben estar llenos de lógica
 - Si un componente necesita lógica compleja
 - Debes programar usando español, esto es porque el proyecto es un hackathon, y no todos mis compañeros saben inglés
+- No debes escribir los códigos en SVG puro, siempre debes tratar de sacar el ícono con lucide-react

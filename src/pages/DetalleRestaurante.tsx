@@ -1,19 +1,12 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { ChipFiltro } from '@/components/comunes/ChipFiltro'
 import { ElementoMenu } from '@/components/restaurante/ElementoMenu'
 import { BarraNavegacion } from '@/components/navegacion/BarraNavegacion'
+import { useRestaurante } from '@/hooks/useRestaurante'
 
 const TABS_MENU = ['Entradas', 'Platos fuertes', 'Postres', 'Bebidas']
 const TABS_SECCION = ['Acerca', 'Menú']
-
-const ITEMS_MENU = [
-  { id: '1', nombre: 'Mole de Xico (pato)', descripcion: 'Pato confitado, mole de Xico, plátano macho', precio: 425 },
-  { id: '2', nombre: 'Pesca del día', descripcion: 'Robalo a las brasas, hoja santa, salsa de morita', precio: 390 },
-  { id: '3', nombre: 'Costilla 18hs', descripcion: 'Costilla braseada, puré de elote, escabeche', precio: 410 },
-]
-
-const ETIQUETAS = ['Mezcal', 'Terraza', 'Sin gluten']
 
 function GaleriaDesktop() {
   return (
@@ -31,7 +24,7 @@ function GaleriaDesktop() {
   )
 }
 
-function SidebarReserva({ onReservar }: { onReservar: () => void }) {
+function SidebarReserva({ onReservar, reservasHoy }: { onReservar: () => void; reservasHoy: number }) {
   return (
     <div className="hidden md:block sticky top-20 self-start">
       <div className="bg-white border border-cafe/12 rounded-[20px] p-5 flex flex-col gap-4">
@@ -42,7 +35,7 @@ function SidebarReserva({ onReservar }: { onReservar: () => void }) {
 
         <div className="bg-amarillo/12 border border-amarillo/20 rounded-[10px] px-3 py-2 text-center">
           <span className="font-body text-[12px] text-amarillo-oscuro">
-            🔥 Ya hay <strong>8 reservas</strong> para hoy
+            🔥 Ya hay <strong>{reservasHoy} reservas</strong> para hoy
           </span>
         </div>
 
@@ -106,24 +99,46 @@ function SidebarReserva({ onReservar }: { onReservar: () => void }) {
   )
 }
 
-function SeccionOcupacion() {
+function SeccionOcupacion({ porcentaje }: { porcentaje: number }) {
+  const mesasOcupadas = Math.round((porcentaje / 100) * 20)
   return (
     <div className="mb-8">
       <h2 className="font-display text-[20px] text-cafe mb-1">Ocupación en vivo</h2>
       <p className="font-body text-[12px] text-cafe-atenuado mb-3">
-        14/20 mesas ocupadas · próxima libre en ~25 min
+        {mesasOcupadas}/20 mesas ocupadas · próxima libre en ~25 min
       </p>
       <div className="relative h-1.5 bg-arena rounded-full">
-        <div className="absolute left-0 top-0 h-full w-[70%] bg-amarillo-oscuro rounded-full" />
+        <div className="absolute left-0 top-0 h-full rounded-full bg-amarillo-oscuro" style={{ width: `${porcentaje}%` }} />
       </div>
     </div>
   )
 }
 
 export function DetalleRestaurante() {
+  const { id } = useParams<{ id: string }>()
+  const { restaurante, cargando } = useRestaurante(id)
   const [tabMenu, setTabMenu] = useState('Platos fuertes')
   const [tabSeccion, setTabSeccion] = useState('Acerca')
   const navegar = useNavigate()
+
+  if (cargando) {
+    return (
+      <div className="min-h-screen bg-crema flex items-center justify-center">
+        <span className="font-body text-[14px] text-cafe-atenuado">Cargando...</span>
+      </div>
+    )
+  }
+
+  if (!restaurante) {
+    return (
+      <div className="min-h-screen bg-crema flex flex-col items-center justify-center gap-3">
+        <span className="font-display text-[24px] text-cafe">Restaurante no encontrado</span>
+        <button onClick={() => navegar(-1)} className="font-body text-[13px] text-cafe-atenuado underline">
+          Regresar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-crema pb-25 md:pb-16">
@@ -146,12 +161,12 @@ export function DetalleRestaurante() {
           <span className="opacity-40">›</span>
           <span>Restaurantes</span>
           <span className="opacity-40">›</span>
-          <span className="text-cafe font-medium">Casa Paloma</span>
+          <span className="text-cafe font-medium">{restaurante.nombre}</span>
         </nav>
 
         <div className="pt-5 md:pt-2 pb-4 md:pb-6 flex flex-col gap-2">
           <div className="flex gap-2 flex-wrap">
-            {ETIQUETAS.map((etiqueta) => (
+            {restaurante.etiquetas.map((etiqueta) => (
               <div key={etiqueta} className="bg-white border border-cafe/12 rounded-full px-2.5 py-1.25">
                 <span className="font-body text-[11px] text-cafe-atenuado">{etiqueta}</span>
               </div>
@@ -160,27 +175,29 @@ export function DetalleRestaurante() {
 
           <div className="flex items-start justify-between">
             <div>
-              <span className="font-body font-medium text-[10px] text-cafe-atenuado">MEXICANA CONTEMPORÁNEA</span>
-              <h1 className="font-display text-[32px] md:text-[40px] text-cafe leading-tight">Casa Paloma</h1>
+              <span className="font-body font-medium text-[10px] text-cafe-atenuado">{restaurante.tipo}</span>
+              <h1 className="font-display text-[32px] md:text-[40px] text-cafe leading-tight">{restaurante.nombre}</h1>
             </div>
             <button className="hidden md:flex w-9.5 h-9.5 border border-cafe/12 rounded-full items-center justify-center text-cafe-atenuado hover:border-cafe/30 transition-colors mt-3 shrink-0">
               ♡
             </button>
           </div>
 
-          <p className="font-body text-[12px] text-cafe-atenuado">⭐ 4.8 (412) · $$$ · Roma Norte</p>
+          <p className="font-body text-[12px] text-cafe-atenuado">
+            ⭐ {restaurante.calificacion} ({restaurante.totalReseñas}) · {restaurante.precio} · {restaurante.ubicacion}
+          </p>
 
           <div className="hidden md:flex gap-5 font-body text-[12px] text-cafe-atenuado">
-            <span>🕐 Mar–Dom · 13:00–23:30</span>
-            <span>📍 Colima 142, Roma Nte.</span>
+            <span>🕐 {restaurante.horario}</span>
+            <span>📍 {restaurante.direccion}</span>
           </div>
         </div>
 
         <GaleriaDesktop />
 
         <div className="md:hidden mb-4 bg-white border border-cafe/7 rounded-[14px] px-3.5 py-2 flex flex-col gap-1">
-          <p className="font-body text-[12px] text-cafe-atenuado">🕐 Horario: Mar–Dom · 13:00–23:30</p>
-          <p className="font-body text-[12px] text-cafe-atenuado">📍 Dirección: Colima 142, Roma Nte.</p>
+          <p className="font-body text-[12px] text-cafe-atenuado">🕐 Horario: {restaurante.horario}</p>
+          <p className="font-body text-[12px] text-cafe-atenuado">📍 Dirección: {restaurante.direccion}</p>
         </div>
 
         <div className="flex gap-6 border-b border-cafe/10 mb-6">
@@ -201,7 +218,9 @@ export function DetalleRestaurante() {
 
         <div className="md:grid md:grid-cols-[1fr_360px] md:gap-10 md:items-start">
           <div>
-            {tabSeccion === 'Acerca' && <SeccionOcupacion />}
+            {tabSeccion === 'Acerca' && (
+              <SeccionOcupacion porcentaje={restaurante.porcentajeOcupacion} />
+            )}
 
             <div>
               <h2 className="font-display text-[20px] text-cafe mb-3">Menú</h2>
@@ -211,14 +230,17 @@ export function DetalleRestaurante() {
                 ))}
               </div>
               <div className="flex flex-col gap-2">
-                {ITEMS_MENU.map((item) => (
+                {restaurante.itemsMenu.map((item) => (
                   <ElementoMenu key={item.id} {...item} />
                 ))}
               </div>
             </div>
           </div>
 
-          <SidebarReserva onReservar={() => navegar('/restaurante/casa-paloma/reservar')} />
+          <SidebarReserva
+            onReservar={() => navegar(`/restaurante/${id}/reservar`)}
+            reservasHoy={restaurante.reservasHoy}
+          />
         </div>
       </div>
 
@@ -229,7 +251,7 @@ export function DetalleRestaurante() {
             <span className="font-body font-semibold text-[13px] text-crema-luz">20:30 · 4 pers.</span>
           </div>
           <button
-            onClick={() => navegar('/restaurante/casa-paloma/reservar')}
+            onClick={() => navegar(`/restaurante/${id}/reservar`)}
             className="flex-1 bg-amarillo rounded-full px-5 py-3.5 text-center"
           >
             <span className="font-body font-bold text-[14px] text-cafe-texto">Reservar mesa →</span>

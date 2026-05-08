@@ -1,17 +1,27 @@
 import { Link } from 'react-router-dom'
+import { LayoutDashboard, Grid2x2, BookMarked, UtensilsCrossed, Users, BarChart3 } from 'lucide-react'
 import type { TabNavLateral } from '@/types'
+import type { LucideIcon } from 'lucide-react'
 
 interface Props {
   tabActiva: TabNavLateral
 }
 
-const elementos = [
-  { id: 'hoy' as TabNavLateral, icono: '✦', etiqueta: 'Hoy', ruta: '/dashboard' },
-  { id: 'mesas' as TabNavLateral, icono: '⊞', etiqueta: 'Mesas', ruta: '/dashboard/mesas' },
-  { id: 'reservas' as TabNavLateral, icono: '🔖', etiqueta: 'Reservas', ruta: '/dashboard/reservas', insignia: 8 },
-  { id: 'menu' as TabNavLateral, icono: '🍴', etiqueta: 'Menú', ruta: '/dashboard/menu' },
-  { id: 'equipo' as TabNavLateral, icono: '👥', etiqueta: 'Equipo', ruta: '/dashboard/equipo' },
-  { id: 'reportes' as TabNavLateral, icono: '📊', etiqueta: 'Reportes', ruta: '/dashboard/reportes' },
+interface ElementoNav {
+  id: TabNavLateral
+  Icono: LucideIcon
+  etiqueta: string
+  ruta: string
+  insignia?: number
+}
+
+const elementos: ElementoNav[] = [
+  { id: 'hoy',      Icono: LayoutDashboard,  etiqueta: 'Hoy',      ruta: '/dashboard'           },
+  { id: 'mesas',    Icono: Grid2x2,          etiqueta: 'Mesas',    ruta: '/dashboard/mesas'     },
+  { id: 'reservas', Icono: BookMarked,        etiqueta: 'Reservas', ruta: '/dashboard/reservas', insignia: 8 },
+  { id: 'menu',     Icono: UtensilsCrossed,   etiqueta: 'Menú',     ruta: '/dashboard/menu'      },
+  { id: 'equipo',   Icono: Users,             etiqueta: 'Equipo',   ruta: '/dashboard/equipo'    },
+  { id: 'reportes', Icono: BarChart3,         etiqueta: 'Reportes', ruta: '/dashboard/reportes'  },
 ]
 
 export function NavLateral({ tabActiva }: Props) {
@@ -27,24 +37,24 @@ export function NavLateral({ tabActiva }: Props) {
         </div>
       </div>
 
-      {elementos.map((elemento) => {
-        const estaActivo = tabActiva === elemento.id
+      {elementos.map(({ id, Icono, etiqueta, ruta, insignia }) => {
+        const estaActivo = tabActiva === id
         return (
           <Link
-            key={elemento.id}
-            to={elemento.ruta}
+            key={id}
+            to={ruta}
             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-[10px] transition-colors ${
               estaActivo ? 'bg-white' : 'hover:bg-white/50'
             }`}
           >
             {estaActivo && <div className="bg-amarillo w-0.5 h-5 rounded-px shrink-0" />}
-            <span className="text-[16px]">{elemento.icono}</span>
+            <Icono size={16} className={estaActivo ? 'text-cafe' : 'text-cafe-atenuado'} />
             <span className={`flex-1 font-body text-[13px] ${estaActivo ? 'font-semibold text-cafe' : 'font-medium text-cafe-atenuado'}`}>
-              {elemento.etiqueta}
+              {etiqueta}
             </span>
-            {elemento.insignia && (
+            {insignia && (
               <div className="bg-amarillo px-1.5 py-0.5 rounded-full">
-                <span className="font-body font-bold text-[10px] text-cafe-texto">{elemento.insignia}</span>
+                <span className="font-body font-bold text-[10px] text-cafe-texto">{insignia}</span>
               </div>
             )}
           </Link>

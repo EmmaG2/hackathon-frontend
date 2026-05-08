@@ -6,10 +6,13 @@ export type TabNavegacion = 'buscar' | 'reservas' | 'cuenta'
 
 export type TabNavLateral = 'hoy' | 'mesas' | 'reservas' | 'menu' | 'equipo' | 'reportes'
 
+export type CategoriaRestaurante = 'Mexicana' | 'Mariscos & Carnes' | 'Internacional' | 'Vegetal & Café'
+
 export interface Restaurante {
   id: string
   nombre: string
   tipo: string
+  categoria: CategoriaRestaurante
   ubicacion: string
   precio: string
   calificacion: number
@@ -22,6 +25,15 @@ export interface ItemMenu {
   nombre: string
   descripcion: string
   precio: number
+}
+
+export interface RestauranteDetalle extends Restaurante {
+  etiquetas: string[]
+  horario: string
+  direccion: string
+  totalReseñas: number
+  reservasHoy: number
+  itemsMenu: ItemMenu[]
 }
 
 export interface Mesa {
