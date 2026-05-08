@@ -40,7 +40,7 @@ export function LoginRestaurante() {
           onClick={() => navegar('/')}
           className="font-display text-[28px] text-crema-luz leading-none"
         >
-          Mesa<span className="text-amarillo">.</span>
+          Noka<span className="text-amarillo">.</span>
         </button>
 
         <div className="w-full bg-white/5 border border-white/10 rounded-[24px] p-8 flex flex-col items-center gap-6">
