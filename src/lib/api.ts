@@ -1,4 +1,7 @@
 import type { Restaurante, RestauranteDetalle } from '@/types'
+import { obtenerAccessToken } from '@/services/autenticacion'
+
+const BACKEND_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api/v1'
 
 const RESTAURANTES: Restaurante[] = [
   {
@@ -749,4 +752,173 @@ export function obtenerDetalle(id: string): Promise<RestauranteDetalle | undefin
   const extra = DETALLES[id]
   if (!extra) return simularLatencia(undefined)
   return simularLatencia({ ...base, ...extra })
+}
+
+// ---------------------------------------------------------------------------
+// Tipos
+// ---------------------------------------------------------------------------
+
+export interface BurbujaDetalle {
+  bubble_id: string
+  bubble_name: string
+  score: number
+  confidence: number
+  feature_importances: Record<string, number>
+}
+
+export interface InsightBubble {
+  occupancy_prediction: number
+  dominant_factor: string
+  uncertainty: number
+  bubble_scores: Record<string, number>
+  bubble_details: BurbujaDetalle[]
+  shap_summary: Record<string, number>
+  recommendations: string[]
+  context_snapshot: Record<string, number>
+}
+
+export interface BurbujaSseEvent {
+  bubble_id: string
+  bubble_name: string
+  etiqueta: string
+  score: number
+  confidence: number
+  feature_importances: Record<string, number>
+}
+
+// ---------------------------------------------------------------------------
+// Helper interno
+// ---------------------------------------------------------------------------
+
+function _authHeaders(): HeadersInit {
+  const token = obtenerAccessToken()
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Obtener insight completo (sin stream)
+// ---------------------------------------------------------------------------
+
+export async function getBubbleInsight(restaurantId: string): Promise<InsightBubble> {
+  const res = await fetch(`${BACKEND_URL}/analiticos/bubble-insight`, {
+    method: 'POST',
+    headers: _authHeaders(),
+    body: JSON.stringify({ restaurant_id: restaurantId }),
+  })
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err?.detail ?? `Error ${res.status}`)
+  }
+
+  return res.json()
+}
+
+// ---------------------------------------------------------------------------
+// Obtener resumen del dashboard
+// ---------------------------------------------------------------------------
+
+export async function getDashboardSummary(restaurantId: string): Promise<{
+  mesas: { total: number; ocupadas: number; disponibles: number; tasa_ocupacion: number }
+  reservaciones_hoy: number
+  ordenes_activas: number
+  timestamp: string
+}> {
+  const res = await fetch(`${BACKEND_URL}/analiticos/dashboard/${restaurantId}`, {
+    headers: _authHeaders(),
+  })
+  if (!res.ok) throw new Error(`Error ${res.status}`)
+  return res.json()
+}
+
+// ---------------------------------------------------------------------------
+// Suscribirse al stream SSE (burbuja por burbuja)
+// ---------------------------------------------------------------------------
+
+export interface StreamCallbacks {
+  onBubble?: (data: BurbujaSseEvent) => void
+  onFinalResult?: (data: InsightBubble) => void
+  onDone?: () => void
+  onError?: (err: Error) => void
+}
+
+/**
+ * Abre un SSE al endpoint /bubble-insight/stream.
+ * Devuelve una función de cierre (cleanup).
+ *
+ * Uso:
+ *   const close = subscribeToBubbleStream('rest-123', {
+ *     onBubble: b => console.log(b),
+ *     onFinalResult: r => setInsight(r),
+ *     onDone: () => setLoading(false),
+ *   })
+ *   // Para cancelar: close()
+ */
+export function subscribeToBubbleStream(
+  restaurantId: string,
+  callbacks: StreamCallbacks,
+): () => void {
+  const token = obtenerAccessToken()
+  let closed = false
+
+  // EventSource no soporta POST con body → usamos fetch + ReadableStream
+  const controller = new AbortController()
+
+  ;(async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/analiticos/bubble-insight/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ restaurant_id: restaurantId }),
+        signal: controller.signal,
+      })
+
+      if (!res.ok || !res.body) {
+        callbacks.onError?.(new Error(`Error ${res.status}`))
+        return
+      }
+
+      const reader = res.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (!closed) {
+        const { done, value } = await reader.read()
+        if (done) break
+        buffer += decoder.decode(value, { stream: true })
+
+        // Parsear bloques SSE  (event: xxx\ndata: yyy\n\n)
+        const bloques = buffer.split('\n\n')
+        buffer = bloques.pop() ?? ''
+
+        for (const bloque of bloques) {
+          const lines = bloque.split('\n')
+          let eventName = ''
+          let dataLine  = ''
+          for (const line of lines) {
+            if (line.startsWith('event: ')) eventName = line.slice(7).trim()
+            if (line.startsWith('data: '))  dataLine  = line.slice(6).trim()
+          }
+          if (!dataLine) continue
+          const parsed = JSON.parse(dataLine)
+          if (eventName === 'bubble_result') callbacks.onBubble?.(parsed)
+          if (eventName === 'final_result')  callbacks.onFinalResult?.(parsed)
+          if (eventName === 'done')           callbacks.onDone?.()
+        }
+      }
+    } catch (err) {
+      if (!closed) callbacks.onError?.(err as Error)
+    }
+  })()
+
+  return () => {
+    closed = true
+    controller.abort()
+  }
 }
