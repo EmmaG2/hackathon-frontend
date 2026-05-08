@@ -77,7 +77,7 @@ export function LoginRestaurante() {
           onClick={() => navegar('/')}
           className="font-body text-[13px] text-crema-luz/30 hover:text-crema-luz/60 transition-colors"
         >
-          ← Volver a Mesa
+          ← Volver a Noka
         </button>
       </div>
     </div>
