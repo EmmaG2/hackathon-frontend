@@ -6,7 +6,7 @@ interface Props {
 }
 
 const tabs = [
-  { id: 'buscar' as TabNavegacion, icono: '🔍', etiqueta: 'Buscar', ruta: '/' },
+  { id: 'buscar' as TabNavegacion, icono: '🔍', etiqueta: 'Buscar', ruta: '/explorar' },
   { id: 'reservas' as TabNavegacion, icono: '🔖', etiqueta: 'Reservas', ruta: '/mis-reservas' },
   { id: 'cuenta' as TabNavegacion, icono: '👤', etiqueta: 'Cuenta', ruta: '/cuenta' },
 ]
