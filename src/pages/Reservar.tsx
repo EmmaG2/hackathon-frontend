@@ -31,12 +31,12 @@ import { formatearMoneda } from '@/lib/utils'
 import type { ItemMenu } from '@/types'
 
 const DIAS = [
-  { etiqueta: 'Hoy', numero: '7' },
-  { etiqueta: 'Vier', numero: '8' },
+  { etiqueta: 'Hoy', numero: '8' },
   { etiqueta: 'Sáb', numero: '9' },
   { etiqueta: 'Dom', numero: '10' },
   { etiqueta: 'Lun', numero: '11' },
   { etiqueta: 'Mar', numero: '12' },
+  { etiqueta: 'Mié', numero: '13' },
 ]
 
 const HORARIOS_BASE = [
@@ -86,9 +86,9 @@ function ContadorPersonas({
       <button
         onClick={() => onChange(Math.max(1, valor - 1))}
         disabled={valor <= 1}
-        className="w-9 h-9 rounded-full bg-crema flex items-center justify-center font-body font-bold text-[18px] text-cafe disabled:opacity-30"
+        className="w-9 h-9 rounded-full bg-crema flex items-center justify-center text-cafe disabled:opacity-30"
       >
-        −
+        <Minus size={18} />
       </button>
       <span className="min-w-14 text-center font-body font-bold text-[18px] text-cafe tabular-nums">
         {valor}
@@ -96,8 +96,9 @@ function ContadorPersonas({
       <button
         onClick={() => onChange(Math.min(12, valor + 1))}
         disabled={valor >= 12}
-        className="w-9 h-9 rounded-full bg-amarillo flex items-center justify-center font-body font-bold text-[18px] text-cafe-texto disabled:opacity-30"
+        className="w-9 h-9 rounded-full bg-amarillo flex items-center justify-center text-cafe-texto disabled:opacity-30"
       >
+        <Plus size={18} />
       </button>
     </div>
   )
@@ -152,7 +153,7 @@ export function Reservar() {
         return
       }
       if (!id) return
-      const fecha = `2026-05-${diaSeleccionado}`
+      const fecha = `2026-05-${diaSeleccionado.padStart(2, '0')}`
       const q = query(
         collection(db, 'reservas'),
         where('restauranteId', '==', id),
@@ -196,8 +197,11 @@ export function Reservar() {
   const tarifaReserva = subtotal > 0 ? 0 : 50
   const total = subtotal + tarifaReserva
   const camposResumen = [
-    { etiqueta: 'Fecha', valor: `9 May` },
-    { etiqueta: 'Hora', valor: horaSeleccionada },
+    { 
+      etiqueta: 'Fecha', 
+      valor: diaSeleccionado ? `${diaSeleccionado} May` : '—' 
+    },
+    { etiqueta: 'Hora', valor: horaSeleccionada || '—' },
 
     {
       etiqueta: 'Personas',
@@ -524,7 +528,7 @@ export function Reservar() {
                         nombre: 'Cliente',
 
                         fecha:
-                          `2026-05-${diaSeleccionado}`,
+                          `2026-05-${diaSeleccionado.padStart(2, '0')}`,
 
                         hora:
                           horaSeleccionada,
