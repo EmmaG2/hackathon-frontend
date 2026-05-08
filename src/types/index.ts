@@ -53,6 +53,7 @@ export interface Reservacion {
   personas: number
   mesa: string
   estado: EstadoReserva
+  orden?: ItemMenu[]
 }
 
 export interface ReservaEnFila {
