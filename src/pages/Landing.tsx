@@ -54,7 +54,7 @@ function NavegacionLanding({
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 h-16 bg-crema/96 backdrop-blur-sm border-b border-cafe/7">
       <span className="font-display text-[24px] text-cafe leading-none">
-        Mesa<span className="text-amarillo">.</span>
+        Noka<span className="text-amarillo">.</span>
       </span>
 
       <button
