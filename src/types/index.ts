@@ -18,6 +18,7 @@ export interface Restaurante {
   calificacion: number
   porcentajeOcupacion: number
   etiquetaOcupacion: string
+  img?: string
 }
 
 export interface ItemMenu {
@@ -34,6 +35,7 @@ export interface RestauranteDetalle extends Restaurante {
   totalReseñas: number
   reservasHoy: number
   itemsMenu: ItemMenu[]
+  galeria?: string[]
 }
 
 export interface Mesa {

@@ -6,6 +6,7 @@ interface Props {
   precio: string
   porcentajeOcupacion: number
   etiquetaOcupacion: string
+  img: string
   onClick?: () => void
 }
 
@@ -15,6 +16,7 @@ export function TarjetaRestaurante({
   precio,
   porcentajeOcupacion,
   etiquetaOcupacion,
+  img,
   onClick,
 }: Props) {
   return (
@@ -23,6 +25,11 @@ export function TarjetaRestaurante({
       className="w-full bg-white border border-cafe/7 rounded-[20px] overflow-hidden text-left"
     >
       <div className="relative h-27 bg-arena">
+        <img
+          src={img}
+          alt={nombre}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
         <div className="absolute inset-0 bg-linear-to-b from-oscuro/85 to-transparent via-30%" />
         <div className="absolute top-2.25 left-2.25">
           <InsigniaOcupacion porcentaje={porcentajeOcupacion} etiqueta={etiquetaOcupacion} />
