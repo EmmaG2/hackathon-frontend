@@ -9,7 +9,6 @@ import {
   X,
   Plus,
   Minus,
-  ShoppingBag,
   ArrowLeft,
 } from 'lucide-react'
 
@@ -242,56 +241,6 @@ export function Reservar() {
     setMesaSeleccionada((prev) =>
       prev === idMesa ? null : idMesa
     )
-  }
-
-  function agregarAOrden(item: ItemMenu) {
-
-    setOrden((prev) => {
-
-      const existe = prev.find(
-        (i) => i.item.id === item.id
-      )
-
-      if (existe) {
-
-        return prev.map((i) =>
-          i.item.id === item.id
-            ? {
-                ...i,
-                cantidad: i.cantidad + 1,
-              }
-            : i
-        )
-      }
-
-      return [...prev, { item, cantidad: 1 }]
-    })
-  }
-
-  function quitarDeOrden(itemId: string) {
-
-    setOrden((prev) => {
-
-      const existe = prev.find(
-        (i) => i.item.id === itemId
-      )
-
-      if (existe && existe.cantidad > 1) {
-
-        return prev.map((i) =>
-          i.item.id === itemId
-            ? {
-                ...i,
-                cantidad: i.cantidad - 1,
-              }
-            : i
-        )
-      }
-
-      return prev.filter(
-        (i) => i.item.id !== itemId
-      )
-    })
   }
 
   if (cargando) return null
