@@ -6,6 +6,7 @@ import { DetalleRestaurante } from '@/pages/DetalleRestaurante'
 import { Reservar } from '@/pages/Reservar'
 import { ReservaExitosa } from '@/pages/ReservaExitosa'
 import { MisReservas } from '@/pages/MisReservas'
+import Cuenta from '@/pages/Cuenta'
 import { DashboardRestaurante } from '@/pages/DashboardRestaurante'
 import { Mesas } from '@/pages/dashboard/Mesas'
 import { Reservas } from '@/pages/dashboard/Reservas'
@@ -28,6 +29,7 @@ function App() {
         <Route path="/restaurante/:id/reservar" element={<ContenedorMovil><Reservar /></ContenedorMovil>} />
         <Route path="/reserva/exito" element={<ContenedorMovil><ReservaExitosa /></ContenedorMovil>} />
         <Route path="/mis-reservas" element={<ContenedorMovil><MisReservas /></ContenedorMovil>} />
+        <Route path="/cuenta" element={<ContenedorMovil><Cuenta /></ContenedorMovil>} />
         <Route path="/dashboard" element={<DashboardRestaurante />} />
         <Route path="/dashboard/mesas"    element={<Mesas />}    />
         <Route path="/dashboard/reservas" element={<Reservas />} />
