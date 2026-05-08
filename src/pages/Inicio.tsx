@@ -9,7 +9,14 @@ import { CarruselCategoria } from '@/components/restaurante/CarruselCategoria'
 import { obtenerTodosLosRestaurantes } from '@/lib/api'
 import type { CategoriaRestaurante, Restaurante } from '@/types'
 
-const FILTROS = ['Disponible ahora', 'Todo', 'Mexicana', 'Mariscos', 'Vegetal', 'Vinos']
+const FILTROS = [
+  'Disponible ahora',
+  'Todo',
+  'Mexicana',
+  'Mariscos',
+  'Vegetal',
+  'Vinos',
+]
 
 const ORDEN_CATEGORIAS: CategoriaRestaurante[] = [
   'Mexicana',
@@ -42,16 +49,31 @@ function agruparPorCategoria(restaurantes: Restaurante[]) {
 function CabeceraDesktop() {
   return (
     <header className="hidden md:flex sticky top-0 z-50 bg-crema/95 backdrop-blur-sm border-b border-cafe/7 items-center gap-8 px-8 h-16">
-      <span className="font-display text-[22px] text-cafe shrink-0">Mesa</span>
+      <span className="font-display text-[22px] text-cafe shrink-0">
+        Mesa
+      </span>
       <div className="flex-1 max-w-sm">
         <div className="flex items-center gap-2.5 bg-white border border-cafe/12 rounded-full px-3.5 h-10">
           <span className="text-[14px]">🔍</span>
-          <span className="font-body text-[13px] text-cafe-claro">Buscar restaurante...</span>
+
+          <span className="font-body text-[13px] text-cafe-claro">
+            Buscar restaurante...
+          </span>
         </div>
       </div>
       <nav className="flex items-center gap-6 ml-auto">
-        <Link to="/explorar" className="font-body font-medium text-[13px] text-cafe">Explorar</Link>
-        <Link to="/mis-reservas" className="font-body text-[13px] text-cafe-atenuado">Mis reservas</Link>
+        <Link
+          to="/explorar"
+          className="font-body font-medium text-[13px] text-cafe"
+        >
+          Explorar
+        </Link>
+        <Link
+          to="/mis-reservas"
+          className="font-body text-[13px] text-cafe-atenuado"
+        >
+          Mis reservas
+        </Link>
       </nav>
     </header>
   )
@@ -62,6 +84,21 @@ export function Inicio() {
   const [restaurantes, setRestaurantes] = useState<Restaurante[]>([])
   const [nombreUsuario, setNombreUsuario] = useState('Invitado')
   const navegar = useNavigate()
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user?.displayName) {
+        const primerNombre =
+        user.displayName.split(' ')[0]
+      const nombreFormateado =
+      primerNombre.charAt(0).toUpperCase() +
+      primerNombre.slice(1).toLowerCase()
+    setNombreUsuario(nombreFormateado)
+      }
+    })
+
+    return () => unsubscribe()
+
+  }, [])
 
   useEffect(() => {
     const cancelarSuscripcion = onAuthStateChanged(auth, (usuario) => {
@@ -84,23 +121,33 @@ export function Inicio() {
   return (
     <div className="min-h-screen bg-crema pb-20.5 md:pb-12">
       <CabeceraDesktop />
-
       <div className="max-w-7xl mx-auto px-4.5 md:px-8">
         <div className="pt-14.5 pb-3.5 md:pt-8 md:pb-5 flex flex-col gap-1.5">
           <span className="font-body font-medium text-[11px] text-cafe-atenuado">📍 DURANGO · DURANGO</span>
           <h1 className="font-display text-[30px] md:text-[40px] text-cafe">Hola, {nombreUsuario}</h1>
           <p className="font-body text-[14px] text-cafe-atenuado">¿Dónde cenamos esta noche?</p>
         </div>
+          <h1 className="font-display text-[30px] md:text-[40px] text-cafe">
+            Hola, {nombreUsuario}
+          </h1>
 
+          <p className="font-body text-[14px] text-cafe-atenuado">
+            ¿Dónde cenamos esta noche?
+          </p>
+
+        </div>
         <div className="mb-3 md:hidden">
           <div className="flex items-center gap-2.5 bg-white border border-cafe/12 rounded-full px-3.5 h-12">
             <span className="text-[16px]">🔍</span>
-            <span className="font-body text-[14px] text-cafe-claro">Buscar restaurante...</span>
+            <span className="font-body text-[14px] text-cafe-claro">
+              Buscar restaurante...
+            </span>
           </div>
         </div>
-
         <div className="mb-6">
+
           <div className="flex gap-2 overflow-x-auto pb-0.5 [&::-webkit-scrollbar]:hidden [-webkit-overflow-scrolling:touch] md:flex-wrap md:overflow-visible md:pb-0">
+
             {FILTROS.map((filtro) => (
               <ChipFiltro
                 key={filtro}
@@ -109,6 +156,7 @@ export function Inicio() {
                 onClick={() => setFiltroActivo(filtro)}
               />
             ))}
+
           </div>
         </div>
 
@@ -165,6 +213,7 @@ export function Inicio() {
       </div>
 
       <BarraNavegacion tabActiva="buscar" />
+
     </div>
   )
 }
