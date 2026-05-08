@@ -50,7 +50,7 @@ function CabeceraDesktop() {
   return (
     <header className="hidden md:flex sticky top-0 z-50 bg-crema/95 backdrop-blur-sm border-b border-cafe/7 items-center gap-8 px-8 h-16">
       <span className="font-display text-[22px] text-cafe shrink-0">
-        Mesa
+        Noka
       </span>
       <div className="flex-1 max-w-sm">
         <div className="flex items-center gap-2.5 bg-white border border-cafe/12 rounded-full px-3.5 h-10">
