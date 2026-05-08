@@ -4,8 +4,10 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { BarraNavegacion } from '@/components/navegacion/BarraNavegacion'
 import { ChipFiltro } from '@/components/comunes/ChipFiltro'
-import { TarjetaRestaurante } from '@/components/restaurante/TarjetaRestaurante'
 import { InsigniaOcupacion } from '@/components/comunes/InsigniaOcupacion'
+import { CarruselCategoria } from '@/components/restaurante/CarruselCategoria'
+import { obtenerTodosLosRestaurantes } from '@/lib/api'
+import type { CategoriaRestaurante, Restaurante } from '@/types'
 
 const FILTROS = [
   'Disponible ahora',
@@ -16,24 +18,33 @@ const FILTROS = [
   'Vinos',
 ]
 
-const RESTAURANTES_CERCANOS = [
-  {
-    id: 'noma-blanca',
-    nombre: 'Noma Blanca',
-    ubicacion: 'Condesa',
-    precio: '$$',
-    porcentajeOcupacion: 40,
-    etiquetaOcupacion: '40% · Disponible',
-  },
-  {
-    id: 'el-tianguis',
-    nombre: 'El Tianguis',
-    ubicacion: 'Coyoacán',
-    precio: '$',
-    porcentajeOcupacion: 95,
-    etiquetaOcupacion: '95% · Lleno',
-  },
+const ORDEN_CATEGORIAS: CategoriaRestaurante[] = [
+  'Mexicana',
+  'Mariscos & Carnes',
+  'Internacional',
+  'Vegetal & Café',
 ]
+
+function filtrarRestaurantes(restaurantes: Restaurante[], filtro: string): Restaurante[] {
+  switch (filtro) {
+    case 'Todo':            return restaurantes
+    case 'Disponible ahora': return restaurantes.filter((r) => r.porcentajeOcupacion < 80)
+    case 'Mexicana':        return restaurantes.filter((r) => r.categoria === 'Mexicana')
+    case 'Mariscos':        return restaurantes.filter((r) => r.categoria === 'Mariscos & Carnes')
+    case 'Vegetal':         return restaurantes.filter((r) => r.categoria === 'Vegetal & Café')
+    case 'Vinos':           return restaurantes.filter((r) => r.categoria === 'Internacional' || r.tipo.toLowerCase().includes('vino'))
+    default:                return restaurantes
+  }
+}
+
+function agruparPorCategoria(restaurantes: Restaurante[]) {
+  return ORDEN_CATEGORIAS
+    .map((categoria) => ({
+      titulo: categoria,
+      restaurantes: restaurantes.filter((r) => r.categoria === categoria),
+    }))
+    .filter((grupo) => grupo.restaurantes.length > 0)
+}
 
 function CabeceraDesktop() {
   return (
@@ -69,12 +80,9 @@ function CabeceraDesktop() {
 }
 
 export function Inicio() {
-
-  const [filtroActivo, setFiltroActivo] =
-    useState('Disponible ahora')
-
-  const [nombreUsuario, setNombreUsuario] =
-    useState('Invitado')
+  const [filtroActivo, setFiltroActivo] = useState('Disponible ahora')
+  const [restaurantes, setRestaurantes] = useState<Restaurante[]>([])
+  const [nombreUsuario, setNombreUsuario] = useState('Invitado')
   const navegar = useNavigate()
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -92,15 +100,33 @@ export function Inicio() {
 
   }, [])
 
+  useEffect(() => {
+    const cancelarSuscripcion = onAuthStateChanged(auth, (usuario) => {
+      if (usuario?.displayName) {
+        const primerNombre = usuario.displayName.split(' ')[0]
+        setNombreUsuario(primerNombre.charAt(0).toUpperCase() + primerNombre.slice(1).toLowerCase())
+      }
+    })
+    return cancelarSuscripcion
+  }, [])
+
+  useEffect(() => {
+    obtenerTodosLosRestaurantes().then(setRestaurantes)
+  }, [])
+
+  const mostrarHero = filtroActivo === 'Todo' || filtroActivo === 'Disponible ahora' || filtroActivo === 'Mexicana'
+  const grupos = agruparPorCategoria(filtrarRestaurantes(restaurantes, filtroActivo))
+  const destacado = restaurantes.find((r) => r.id === 'casa-paloma')
+
   return (
     <div className="min-h-screen bg-crema pb-20.5 md:pb-12">
       <CabeceraDesktop />
       <div className="max-w-7xl mx-auto px-4.5 md:px-8">
         <div className="pt-14.5 pb-3.5 md:pt-8 md:pb-5 flex flex-col gap-1.5">
-          <span className="font-body font-medium text-[11px] text-cafe-atenuado">
-            📍 DURANGO · DURANGO
-          </span>
-
+          <span className="font-body font-medium text-[11px] text-cafe-atenuado">📍 DURANGO · DURANGO</span>
+          <h1 className="font-display text-[30px] md:text-[40px] text-cafe">Hola, {nombreUsuario}</h1>
+          <p className="font-body text-[14px] text-cafe-atenuado">¿Dónde cenamos esta noche?</p>
+        </div>
           <h1 className="font-display text-[30px] md:text-[40px] text-cafe">
             Hola, {nombreUsuario}
           </h1>
@@ -133,72 +159,57 @@ export function Inicio() {
 
           </div>
         </div>
-        <div className="mb-6">
-          <button
-            onClick={() =>
-              navegar('/restaurante/casa-paloma')
-            }
-            className="w-full h-70 md:h-96 bg-arena rounded-[28px] overflow-hidden relative text-left"
-          >
-            <div className="absolute inset-0 bg-linear-to-b from-marron via-marron/40 to-oscuro/95" />
-            <div className="absolute inset-0 bg-linear-to-t from-oscuro/30 via-transparent to-oscuro/95" />
-            <div className="absolute top-3.5 left-3.5">
-              <div className="bg-amarillo px-2.5 py-1.25 rounded-full">
-                <span className="font-body font-semibold text-[11px] text-cafe-texto">
-                  ✦ Recomendado
+
+        {mostrarHero && destacado && (
+          <div className="mb-8">
+            <button
+              onClick={() => navegar(`/restaurante/${destacado.id}`)}
+              className="w-full h-70 md:h-96 bg-arena rounded-[28px] overflow-hidden relative text-left"
+            >
+              <img
+                src={destacado.img}
+                alt={destacado.nombre}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-linear-to-b from-marron via-marron/40 to-oscuro/95" />
+              <div className="absolute inset-0 bg-linear-to-t from-oscuro/30 via-transparent to-oscuro/95" />
+
+              <div className="absolute top-3.5 left-3.5">
+                <div className="bg-amarillo px-2.5 py-1.25 rounded-full">
+                  <span className="font-body font-semibold text-[11px] text-cafe-texto">✦ Recomendado</span>
+                </div>
+              </div>
+
+              <div className="absolute top-3.5 right-3.5">
+                <InsigniaOcupacion
+                  porcentaje={destacado.porcentajeOcupacion}
+                  etiqueta={destacado.etiquetaOcupacion}
+                />
+              </div>
+
+              <div className="absolute bottom-4.5 left-4.5 flex flex-col gap-1.5">
+                <span className="font-body font-medium text-[10px] text-crema-luz/72">
+                  {destacado.tipo}
+                </span>
+                <h2 className="font-display text-[28px] md:text-[40px] text-crema-luz">
+                  {destacado.nombre}
+                </h2>
+                <span className="font-body text-[12px] md:text-[15px] text-crema-luz/78">
+                  ⭐ {destacado.calificacion} · 📍 {destacado.ubicacion} · {destacado.precio}
                 </span>
               </div>
-            </div>
-
-            <div className="absolute top-3.5 right-3.5">
-              <InsigniaOcupacion
-                porcentaje={70}
-                etiqueta="70% · Ocupado"
-              />
-            </div>
-
-            <div className="absolute bottom-4.5 left-4.5 flex flex-col gap-1.5">
-
-              <span className="font-body font-medium text-[10px] text-crema-luz/72">
-                MEXICANA CONTEMPORÁNEA
-              </span>
-
-              <h2 className="font-display text-[28px] md:text-[40px] text-crema-luz">
-                Casa Paloma
-              </h2>
-
-              <span className="font-body text-[12px] md:text-[15px] text-crema-luz/78">
-                ⭐ 4.8 · 📍 Roma Norte · $$$
-              </span>
-
-            </div>
-
-          </button>
-
-        </div>
-
-        <div>
-
-          <h2 className="font-display text-[18px] md:text-[24px] text-cafe mb-3">
-            Cerca de ti
-          </h2>
-
-          <div className="flex flex-col gap-3 md:grid md:grid-cols-3 md:gap-4">
-
-            {RESTAURANTES_CERCANOS.map((restaurante) => (
-              <TarjetaRestaurante
-                key={restaurante.id}
-                {...restaurante}
-                onClick={() =>
-                  navegar(`/restaurante/${restaurante.id}`)
-                }
-              />
-            ))}
-
+            </button>
           </div>
+        )}
 
-        </div>
-
+        {grupos.map((grupo) => (
+          <CarruselCategoria
+            key={grupo.titulo}
+            titulo={grupo.titulo}
+            restaurantes={grupo.restaurantes}
+            onVerRestaurante={(id) => navegar(`/restaurante/${id}`)}
+          />
+        ))}
       </div>
 
       <BarraNavegacion tabActiva="buscar" />

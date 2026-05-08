@@ -1,3 +1,5 @@
+import { sillasCirculo, sillasRectangulo, ANCHO_PLANO as ANCHO, ALTO_PLANO as ALTO } from '@/components/plano/planoUtils'
+
 interface MesaRedonda {
   id: number
   forma: 'redonda'
@@ -27,9 +29,6 @@ interface Props {
   cantPersonas?: number
 }
 
-const ANCHO = 340
-const ALTO = 460
-
 const MESAS: MesaPlano[] = [
   { id: 1,  forma: 'redonda',  cx: 60,  cy: 60,  r: 18, asientos: 2, estado: 'ocupada'   },
   { id: 2,  forma: 'redonda',  cx: 138, cy: 60,  r: 18, asientos: 2, estado: 'ocupada'   },
@@ -54,56 +53,6 @@ const PALETA = {
   seleccionada: { fondo: '#fbd464', borde: '#fbd464', silla: '#1a1410',   num: '#1a1410' },
 }
 
-function sillasCiruclo(cx: number, cy: number, r: number, asientos: number, color: string) {
-  const anchoSilla = 11, altoSilla = 5, gap = 4
-  const angulos = asientos === 2
-    ? [-Math.PI / 2, Math.PI / 2]
-    : Array.from({ length: asientos }, (_, i) => (i / asientos) * Math.PI * 2 - Math.PI / 2)
-
-  return angulos.map((a, i) => {
-    const x = cx + Math.cos(a) * (r + gap + altoSilla / 2)
-    const y = cy + Math.sin(a) * (r + gap + altoSilla / 2)
-    const rot = (a * 180 / Math.PI) + 90
-    return (
-      <rect
-        key={i}
-        x={-anchoSilla / 2} y={-altoSilla / 2}
-        width={anchoSilla} height={altoSilla}
-        rx={1.5} fill={color}
-        transform={`translate(${x} ${y}) rotate(${rot})`}
-      />
-    )
-  })
-}
-
-function sillasRectangulo(x: number, y: number, w: number, h: number, asientos: number, color: string) {
-  const anchoSilla = 11, altoSilla = 5, gap = 4
-  const items: { cx: number; cy: number; rot: number }[] = []
-
-  if (asientos === 4) {
-    items.push({ cx: x + w / 2, cy: y - gap - altoSilla / 2,       rot: 0  })
-    items.push({ cx: x + w / 2, cy: y + h + gap + altoSilla / 2,   rot: 0  })
-    items.push({ cx: x - gap - altoSilla / 2,       cy: y + h / 2, rot: 90 })
-    items.push({ cx: x + w + gap + altoSilla / 2,   cy: y + h / 2, rot: 90 })
-  } else {
-    items.push({ cx: x + w * 0.27, cy: y - gap - altoSilla / 2,     rot: 0  })
-    items.push({ cx: x + w * 0.73, cy: y - gap - altoSilla / 2,     rot: 0  })
-    items.push({ cx: x + w * 0.27, cy: y + h + gap + altoSilla / 2, rot: 0  })
-    items.push({ cx: x + w * 0.73, cy: y + h + gap + altoSilla / 2, rot: 0  })
-    items.push({ cx: x - gap - altoSilla / 2,       cy: y + h / 2,  rot: 90 })
-    items.push({ cx: x + w + gap + altoSilla / 2,   cy: y + h / 2,  rot: 90 })
-  }
-
-  return items.map((s, i) => (
-    <rect
-      key={i}
-      x={-anchoSilla / 2} y={-altoSilla / 2}
-      width={anchoSilla} height={altoSilla}
-      rx={1.5} fill={color}
-      transform={`translate(${s.cx} ${s.cy}) rotate(${s.rot})`}
-    />
-  ))
-}
 
 function MesaSVG({
   mesa,
@@ -145,7 +94,7 @@ function MesaSVG({
 
       {mesa.forma === 'redonda' ? (
         <>
-          {sillasCiruclo(mesa.cx, mesa.cy, mesa.r, mesa.asientos, cfg.silla)}
+          {sillasCirculo(mesa.cx, mesa.cy, mesa.r, mesa.asientos, cfg.silla)}
           <circle
             cx={mesa.cx} cy={mesa.cy} r={mesa.r}
             fill={cfg.fondo} stroke={cfg.borde}
